@@ -10,6 +10,8 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using Identity_X_2024.Data;
+using Identity_X_2024.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -29,13 +31,17 @@ namespace Identity_X_2024.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        //dodanie możliwości zapisu do bazy danych
+        private readonly ApplicationDbContext _context;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            //dodanie możliwości zapisu do bazy danych
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -43,6 +49,8 @@ namespace Identity_X_2024.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            //dodanie możliwości zapisu do bazy danych
+            _context = context;
         }
 
         /// <summary>
@@ -120,6 +128,13 @@ namespace Identity_X_2024.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
+                    //utworzenie rekordu w tabeli Uzytkownicy
+                    Uzytkownik uzytkownik = new Uzytkownik();
+                    uzytkownik.UzytkownikUserId=user.Id;
+                    _context.Uzytkownik.Add(uzytkownik);
+                    _context.SaveChanges();
+                   
+
                     _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
