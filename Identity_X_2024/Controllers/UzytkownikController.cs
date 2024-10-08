@@ -7,22 +7,38 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Identity_X_2024.Data;
 using Identity_X_2024.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace Identity_X_2024.Controllers
 {
+    //dodanie poniższego anatation 
+    //wymaga zalogowania się aby korzystać z poniższych metod
+    [Authorize]
     public class UzytkownikController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public UzytkownikController(ApplicationDbContext context)
+        public UzytkownikController(ApplicationDbContext context
+            ,UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Uzytkownik
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Uzytkownik.Include(u => u.UzytkownikUser);
+            return View(await applicationDbContext.ToListAsync());
+        }
+        public async Task<IActionResult> IndexUzytkownik()
+        {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var applicationDbContext = _context.Uzytkownik.
+                Include(u => u.UzytkownikUser).Where(u=>u.UzytkownikUserId==user.Id);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -75,12 +91,18 @@ namespace Identity_X_2024.Controllers
             if (id == null)
             {
                 return NotFound();
-            }
-
+            }            
             var uzytkownik = await _context.Uzytkownik.FindAsync(id);
-            if (uzytkownik == null)
+            if (uzytkownik == null )
             {
                 return NotFound();
+            }
+
+            //zablokowanie możlwiwości edycji innego rekordu niż zalogowany użytkownik
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user.Id!=uzytkownik.UzytkownikUserId)
+            {
+                return RedirectToAction("IndexUzytkownik");
             }
             ViewData["UzytkownikUserId"] = new SelectList(_context.Users, "Id", "Id", uzytkownik.UzytkownikUserId);
             return View(uzytkownik);
@@ -121,7 +143,8 @@ namespace Identity_X_2024.Controllers
             ViewData["UzytkownikUserId"] = new SelectList(_context.Users, "Id", "Id", uzytkownik.UzytkownikUserId);
             return View(uzytkownik);
         }
-
+        //ograniczenie do roli Admin
+        [Authorize(Roles ="Admin")]
         // GET: Uzytkownik/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -140,7 +163,7 @@ namespace Identity_X_2024.Controllers
 
             return View(uzytkownik);
         }
-
+        [Authorize(Roles = "Admin")]
         // POST: Uzytkownik/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
