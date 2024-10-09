@@ -60,7 +60,7 @@ namespace Identity_X_2024.Controllers
 
             return View(uzytkownik);
         }
-
+        [Authorize(Roles = "Admin")]
         // GET: Uzytkownik/Create
         public IActionResult Create()
         {
@@ -73,6 +73,7 @@ namespace Identity_X_2024.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("UzytkownikId,Imie,Nazwisko,Wzrost,Plec,UzytkownikUserId")] Uzytkownik uzytkownik)
         {
             if (ModelState.IsValid)
@@ -104,6 +105,7 @@ namespace Identity_X_2024.Controllers
             {
                 return RedirectToAction("IndexUzytkownik");
             }
+            //
             ViewData["UzytkownikUserId"] = new SelectList(_context.Users, "Id", "Id", uzytkownik.UzytkownikUserId);
             return View(uzytkownik);
         }
@@ -120,10 +122,18 @@ namespace Identity_X_2024.Controllers
                 return NotFound();
             }
 
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    //zablokowanie możlwiwości edycji innego rekordu niż zalogowany użytkownik
+                    var user = await _userManager.GetUserAsync(HttpContext.User);
+                    if (user.Id != uzytkownik.UzytkownikUserId)
+                    {
+                        return RedirectToAction("IndexUzytkownik");
+                    }
+                    //
                     _context.Update(uzytkownik);
                     await _context.SaveChangesAsync();
                 }
