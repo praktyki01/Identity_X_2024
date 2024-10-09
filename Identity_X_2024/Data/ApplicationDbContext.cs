@@ -11,5 +11,8 @@ namespace Identity_X_2024.Data
         {
         }
         public DbSet<Identity_X_2024.Models.Uzytkownik> Uzytkownik { get; set; } = default!;
+        public DbSet<Identity_X_2024.Models.Sport> Sport { get; set; } = default!;
+        public DbSet<Identity_X_2024.Models.Trening> Trening { get; set; } = default!;
+        public DbSet<Identity_X_2024.Models.Waga> Waga { get; set; } = default!;
     }
 }

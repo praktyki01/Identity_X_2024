@@ -1,0 +1,48 @@
+﻿@model Identity_X_2024.Models.Trening
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Trening</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Uzytkownik)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Uzytkownik.UzytkownikId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Sport)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Sport.SportId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Dystans)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Dystans)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Data)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Data)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Czas)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Czas)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.TreningId">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
