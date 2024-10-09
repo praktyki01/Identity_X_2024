@@ -33,11 +33,12 @@
                 <input asp-for="Plec" class="form-control" />
                 <span asp-validation-for="Plec" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            @* <div class="form-group">
                 <label asp-for="UzytkownikUserId" class="control-label"></label>
                 <select asp-for="UzytkownikUserId" class="form-control" asp-items="ViewBag.UzytkownikUserId"></select>
                 <span asp-validation-for="UzytkownikUserId" class="text-danger"></span>
-            </div>
+            </div> *@
+            <input type="hidden" name="UzytkownikUserId" value="@Model.UzytkownikUserId" />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

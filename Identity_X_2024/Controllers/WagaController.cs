@@ -7,22 +7,31 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Identity_X_2024.Data;
 using Identity_X_2024.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace Identity_X_2024.Controllers
 {
+    [Authorize]
     public class WagaController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public WagaController(ApplicationDbContext context)
+        public WagaController(ApplicationDbContext context
+            , UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Waga
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Waga.Include(w => w.Uzytkownik);
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var uzytkownik = _context.Uzytkownik.Where(u => u.UzytkownikUserId == user.Id).FirstOrDefault();
+            var applicationDbContext = _context.Waga.
+                Include(w => w.Uzytkownik).Where(u=>u.UzytkownikId==uzytkownik.UzytkownikId);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -33,13 +42,24 @@ namespace Identity_X_2024.Controllers
             {
                 return NotFound();
             }
-
+            
             var waga = await _context.Waga
                 .Include(w => w.Uzytkownik)
                 .FirstOrDefaultAsync(m => m.WagaId == id);
             if (waga == null)
             {
                 return NotFound();
+            }
+
+            //odczytanie zalogowanego użytkownika
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            //odczytanie zalogowanego użytkownika w tabeli Uzytkownicy
+            var uzytkownik = _context.Uzytkownik.
+                Where(u => u.UzytkownikUserId == user.Id).FirstOrDefault();
+            //sprawdzenie, czy edytujemy rekord zalogowanego użytkownika
+            if (uzytkownik != null && waga.UzytkownikId != uzytkownik.UzytkownikId)
+            {
+                return RedirectToAction("Index");
             }
 
             return View(waga);
@@ -61,8 +81,18 @@ namespace Identity_X_2024.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(waga);
-                await _context.SaveChangesAsync();
+                //odczytanie zalogowanego użytkownika
+                var user = await _userManager.GetUserAsync(HttpContext.User);
+                //odczytanie zalogowanego użytkownika w tabeli Uzytkownicy
+                var uzytkownik=_context.Uzytkownik.
+                    Where(u=>u.UzytkownikUserId==user.Id).FirstOrDefault();
+                if (uzytkownik != null)
+                {
+                    waga.UzytkownikId = uzytkownik.UzytkownikId;
+                    _context.Add(waga);
+                    await _context.SaveChangesAsync();
+                }
+                
                 return RedirectToAction(nameof(Index));
             }
             ViewData["UzytkownikId"] = new SelectList(_context.Uzytkownik, "UzytkownikId", "UzytkownikId", waga.UzytkownikId);
@@ -76,11 +106,22 @@ namespace Identity_X_2024.Controllers
             {
                 return NotFound();
             }
-
+                                 
             var waga = await _context.Waga.FindAsync(id);
             if (waga == null)
             {
                 return NotFound();
+            }
+
+            //odczytanie zalogowanego użytkownika
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            //odczytanie zalogowanego użytkownika w tabeli Uzytkownicy
+            var uzytkownik = _context.Uzytkownik.
+                Where(u => u.UzytkownikUserId == user.Id).FirstOrDefault();
+            //sprawdzenie, czy edytujemy rekord zalogowanego użytkownika
+            if (uzytkownik!=null && waga.UzytkownikId!=uzytkownik.UzytkownikId)
+            {
+                return RedirectToAction("Index");
             }
             ViewData["UzytkownikId"] = new SelectList(_context.Uzytkownik, "UzytkownikId", "UzytkownikId", waga.UzytkownikId);
             return View(waga);
@@ -102,7 +143,17 @@ namespace Identity_X_2024.Controllers
             {
                 try
                 {
-                    _context.Update(waga);
+                    //odczytanie zalogowanego użytkownika
+                    var user = await _userManager.GetUserAsync(HttpContext.User);
+                    //odczytanie zalogowanego użytkownika w tabeli Uzytkownicy
+                    var uzytkownik = _context.Uzytkownik.
+                        Where(u => u.UzytkownikUserId == user.Id).FirstOrDefault();
+                    if(uzytkownik!=null)
+                    {
+                        waga.UzytkownikId = uzytkownik.UzytkownikId;
+                        _context.Update(waga);
+                    }
+                    
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -138,6 +189,17 @@ namespace Identity_X_2024.Controllers
                 return NotFound();
             }
 
+            //odczytanie zalogowanego użytkownika
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            //odczytanie zalogowanego użytkownika w tabeli Uzytkownicy
+            var uzytkownik = _context.Uzytkownik.
+                Where(u => u.UzytkownikUserId == user.Id).FirstOrDefault();
+            //sprawdzenie, czy edytujemy rekord zalogowanego użytkownika
+            if (uzytkownik != null && waga.UzytkownikId != uzytkownik.UzytkownikId)
+            {
+                return RedirectToAction("Index");
+            }
+
             return View(waga);
         }
 
@@ -149,6 +211,17 @@ namespace Identity_X_2024.Controllers
             var waga = await _context.Waga.FindAsync(id);
             if (waga != null)
             {
+                //odczytanie zalogowanego użytkownika
+                var user = await _userManager.GetUserAsync(HttpContext.User);
+                //odczytanie zalogowanego użytkownika w tabeli Uzytkownicy
+                var uzytkownik = _context.Uzytkownik.
+                    Where(u => u.UzytkownikUserId == user.Id).FirstOrDefault();
+                //sprawdzenie, czy edytujemy rekord zalogowanego użytkownika
+                if (uzytkownik != null && waga.UzytkownikId != uzytkownik.UzytkownikId)
+                {
+                    return RedirectToAction("Index");
+                }
+
                 _context.Waga.Remove(waga);
             }
 
